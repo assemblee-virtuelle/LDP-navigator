@@ -10,17 +10,17 @@ Le fonctionnement fondamentale n'utilise pas de persistance ni de cache et n'est
 Les adapters permettent de compléter le noyau InMemory avec des capacité de connection et d'interopérabilité. La navigation sur des sujets, non encore chargé dans l'instance, est alors assimillable à du deréférencement.
 deux méthodes sont implémentable dans un adapter
 - resolveById : recherche un sujet par son id.
-- persist : persister un sujet pour le retrouver au prochain resolveById. ** not implemented **
+- persist : persister un sujet pour le retrouver au prochain resolveById. **not implemented**
 
 Les adapters sont cumulables et affectés avec ```setAdapters()```. Il sont appelé dans l'ordre du tableau passé en parametre.
 
 #### FetchAdapter
 Il permet de requeter l'uri d'un sujet qui n'est pas encore InMemory. Le header est configurable pour permettre des authentificaitons ou d'autres parametres.
-** persist N/A **
+**persist N/**
 
 #### SparqlAdapter
 Il permet requeter un endpoint Sparql http pour trouver un sujet qui n'est pas encore InMemory. Le endpoint est configurable.
 
 #### localStorageAdapter
-** Not implemented yet**
+**Not implemented**
 Il permet de requetter dans le localStorage du navigateur un sujet qui n'est pas encore InMemory.
