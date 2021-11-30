@@ -106,8 +106,8 @@ class LDPNavigator {
       let out=[];
       for (var prop of rawProperty) {
         if(prop['@id']){
-          // const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
-          const dereference = await this.resolveById(prop['@id'],true);
+          const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
+          // const dereference = await this.resolveById(prop['@id'],true);
           out.push(dereference);
         }else if(prop['@value']){
           // return prop['@value'];
