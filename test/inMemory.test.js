@@ -2,7 +2,6 @@ import LDPNavigator from './../src/index'
 
 const context={ '@context':{
   "vocabulary": "http://example.org/vocab#",
-  "location": "http://example.org/container/",
   "vocabulary:linkedObject":{
     "@type":"@id"
   }
@@ -17,7 +16,9 @@ const subject1 = {
 const subject2 = {
   "@id":"myId2",
   "vocabulary:predicate":"object",
-  "vocabulary:linkedObject":"myId3"
+  "vocabulary:linkedObject":[
+    "myId1",
+    "myId3"
 }
 
 const subject3 = {
