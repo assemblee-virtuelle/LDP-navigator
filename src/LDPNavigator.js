@@ -125,7 +125,7 @@ class LDPNavigator {
   }
 
   async dereference(mainData, propertiesSchema) {
-    console.log('dereference',mainData,propertiesSchema);
+    // console.log('dereference',mainData,propertiesSchema);
 
     if(Array.isArray(mainData)){
       let result = [];

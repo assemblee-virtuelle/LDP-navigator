@@ -10,4 +10,4 @@ import LDPNavigator_SparqlAndFetch_Factory from './LDPNavigator_SparqlAndFetch_F
 // };
 
 export default LDPNavigator;
-// export {LDPNavigator,FetchAdapter,SparqlAdapter,LDPNavigator_SparqlAndFetch_Factory}
+export {LDPNavigator,FetchAdapter,SparqlAdapter,LDPNavigator_SparqlAndFetch_Factory}
