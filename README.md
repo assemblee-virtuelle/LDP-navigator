@@ -113,7 +113,7 @@ inMemorySubject2
 }
 ```
 
-###Adapters
+## Adapters
 Les adapters permettent de compléter le noyau InMemory avec des capacité de connection et d'interopérabilité. La navigation sur des sujets, non encore chargé dans l'instance, est alors assimillable à du deréférencement.
 deux méthodes sont implémentable dans un adapter
 - resolveById : recherche un sujet par son id.
