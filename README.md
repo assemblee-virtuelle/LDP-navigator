@@ -68,7 +68,7 @@ linkedObject
 }
 ```
 
-### derefernce
+### dereference
 ```
 const inMemorySubject1 = await ldpNavigator.resolveById('myId1');
 const inMemorySubject2 = await ldpNavigator.resolveById('myId2');
@@ -78,8 +78,14 @@ const dereferenced1 = await ldpNavigator.dereference(inMemorySubject1,{
 const dereferenced2 = await ldpNavigator.dereference(inMemorySubject2,{
   p:'vocabulary:linkedObject'
 });
+const dereferenced3 = await ldpNavigator.dereference(inMemorySubject1,{
+  p:'vocabulary:linkedObject',
+  n:{
+    p:'vocabulary:linkedObject'
+  }
+});
 ```
-inMemorySubject1
+dereferenced1
 ```
 {
   "@id":"myId1",
@@ -94,7 +100,7 @@ inMemorySubject1
   }
 }
 ```
-inMemorySubject2
+dereferenced2
 ```
 {
   "@id":"myId2",
@@ -108,6 +114,55 @@ inMemorySubject2
     {
       "@id":"myId3",
       "vocabulary:predicate":"object"
+    }
+  ]
+}
+```
+dereferenced3
+```
+{
+  "@id":"myId1",
+  "vocabulary:predicate":"object",
+  "vocabulary:linkedObject":{
+    "@id":"myId2",
+    "vocabulary:predicate":"object",
+    "vocabulary:linkedObject":[
+      {
+        "@id":"myId1",
+        "vocabulary:predicate":"object",
+        "vocabulary:linkedObject":"myId2"
+      },
+      {
+        "@id":"myId3",
+        "vocabulary:predicate":"object"
+      }
+    ]
+  }
+}
+```
+
+### config
+#### forceArray
+
+```
+const ldpNavigator  = new LDPNavigator({
+    forceArray=['vocabulary:predicate']
+  });
+```
+
+dereferenced1
+```
+{
+  "@id":"myId1",
+  "vocabulary:predicate":"object",
+  "vocabulary:linkedObject":[
+    {
+      "@id":"myId2",
+      "vocabulary:predicate":"object",
+      "vocabulary:linkedObject":[
+        "myId1",
+        "myId3"
+      ]
     }
   ]
 }
