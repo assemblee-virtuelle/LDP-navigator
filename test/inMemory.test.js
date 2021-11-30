@@ -19,6 +19,7 @@ const subject2 = {
   "vocabulary:linkedObject":[
     "myId1",
     "myId3"
+  ]
 }
 
 const subject3 = {
@@ -27,11 +28,11 @@ const subject3 = {
 }
 
 test('create instance of ldpNavigator',()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
 });
 
 test('read literal from 1 subject',async ()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
   const initSubject = {
     ...context,
     ...subject2
@@ -46,7 +47,7 @@ test('read literal from 1 subject',async ()=>{
 
 
 test('init 2 subjects',async ()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
   const initSubject = {
     ...context,
     "@graph":[
@@ -64,7 +65,7 @@ test('init 2 subjects',async ()=>{
 
 
 test('read linked Object',async ()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
   const initSubject = {
     ...context,
     "@graph":[
@@ -79,7 +80,7 @@ test('read linked Object',async ()=>{
 });
 
 test('dereference linked Object a 1 depth',async ()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
   const initSubject = {
     ...context,
     "@graph":[
@@ -95,8 +96,27 @@ test('dereference linked Object a 1 depth',async ()=>{
   expect(dereferenced['vocabulary:linkedObject']['@id']).toBe(subject2['@id']);
 });
 
+test('dereference linked Array Object a 1 depth',async ()=>{
+  const ldpNavigator  = new LDPNavigator();
+  const initSubject = {
+    ...context,
+    "@graph":[
+      subject1,
+      subject2,
+      subject3
+    ]
+  };
+  await ldpNavigator.init(initSubject)
+  const inMemorySubject2 = await ldpNavigator.resolveById(subject2['@id']);
+  const dereferenced = await ldpNavigator.dereference(inMemorySubject2,{
+    p:'vocabulary:linkedObject'
+  });
+  expect(dereferenced['vocabulary:linkedObject'].map(o=>o['@id'])).toContain(subject1['@id']);
+  expect(dereferenced['vocabulary:linkedObject'].map(o=>o['@id'])).toContain(subject3['@id']);
+});
+
 test('dereference linked Object a 2 depth',async ()=>{
-  const ldpNavigator  = new LDPNavigator;
+  const ldpNavigator  = new LDPNavigator();
   const initSubject = {
     ...context,
     "@graph":[
@@ -113,5 +133,5 @@ test('dereference linked Object a 2 depth',async ()=>{
       p:'vocabulary:linkedObject'
     }
   });
-  expect(dereferenced['vocabulary:linkedObject']['vocabulary:linkedObject']['@id']).toBe(subject3['@id']);
+  expect(dereferenced['vocabulary:linkedObject']['vocabulary:linkedObject'].map(o=>o['@id'])).toContain(subject3['@id']);
 });
