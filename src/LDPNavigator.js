@@ -45,11 +45,11 @@ class LDPNavigator {
   }
 
   async resolveById(id,noContext){
-    // console.log('resolveById',id);
+
     let result = undefined
     if (result==undefined){
-      let resultInMemory = await this.findInMemory({'@id':id})
-      // let resultInMemory = this.graph.find(f=>f["@id"]==id);
+      // let resultInMemory = await this.findInMemory({'@id':id})
+      let resultInMemory = this.graph.find(f=>f["@id"]==id);
       if (resultInMemory) {
         result= resultInMemory;
       }
@@ -106,8 +106,8 @@ class LDPNavigator {
       let out=[];
       for (var prop of rawProperty) {
         if(prop['@id']){
-          const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
-          // const dereference = await this.resolveById(prop['@id'],true);
+          // const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
+          const dereference = await this.resolveById(prop['@id'],true);
           out.push(dereference);
         }else if(prop['@value']){
           // return prop['@value'];

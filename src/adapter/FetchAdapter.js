@@ -6,6 +6,7 @@ class FetchAdapter {
   }
 
   async resolveById(id){
+    console.log('ALLLLO');
     const response = await fetch(id,{headers:this.config.headers});
     const result = await response.json();
     return result;
