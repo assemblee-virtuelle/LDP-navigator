@@ -180,7 +180,7 @@ dereferenced1
 ```
 
 ## Adapters
-Les adapters permettent de compléter le noyau InMemory avec des capacités de connexion et d'interopérabilité. La navigation sur des sujets, pas encore chargée dans l'instance, est alors assimillable à du deréférencement.
+Les adapters permettent de compléter le noyau InMemory avec des capacités de connexion et d'interopérabilité. La navigation sur des sujets, pas encore chargée dans l'instance, est alors assimillable à du déréférencement.
 Deux méthodes sont implémentable dans un adapter :
 - resolveById : recherche un sujet par son id.
 - persist : persister un sujet pour le retrouver au prochain resolveById. *not implemented*
@@ -188,11 +188,11 @@ Deux méthodes sont implémentable dans un adapter :
 Les adapters sont cumulables et affectés avec ```setAdapters()```. Il sont appelés dans l'ordre du tableau passé en paramètres. Une instance de ldp-navigator avec ou sans adapters se manipule de manière identique. Les adpaters vont permettre de rechercher des données hors de la mémoire de l'instance et de les persister pour les retourner plus tard sans dépendre du cyle de vie de l'instance.
 
 ### FetchAdapter
-Il permet de requeter l'uri d'un sujet qui n'est pas encore InMemory. Le header est configurable pour permettre des authentifications ou d'autres paramètres.
+Il permet de requeter l'uri d'un sujet qui n'est pas encore InMemory. Les headers sont configurables pour permettre des authentifications ou d'autres paramètres.
 *persist N/A*
 
 ### SparqlAdapter
-Il permet requeter un endpoint Sparql http pour trouver un sujet qui n'est pas encore InMemory. Le endpoint est configurable.
+Il permet requeter un endpoint Sparql http pour trouver un sujet qui n'est pas encore InMemory. Le endpoint, prefix et headers est configurable.
 
 ### localStorageAdapter
 *Not implemented*
