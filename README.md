@@ -1,24 +1,28 @@
+Ldp-navigator trad
+====
+
+
 # ldp-navigator
-ldp-navigator est une bibliothèque conçue pour faciliter la navigation dans des données [LDP](https://www.w3.org/TR/ldp/). Elle est massivement basée sur [JSON-LD](https://json-ld.org/).
-Cette bibliothèque ressemble fonctionnellement à [LDFlex](https://github.com/LDflex/LDflex) mais se veut minimaliste. Elle est basée sur une logique objet plutôt que que sur un logique SPARQL. Les Adapters peuvent être autre chose que des endPoints SPARQL et sont agnostiques (ne dépendent pas de communica). La mécanique d'authentification du SparqlAdapter et FetchlAdapter est plus libre (solid-auth-client pour communica) et facile à configurer tout en étant compatible (un CommunicaAdapter est tout à fait possible).
+ldp-navigator is a library designed to facilitate navigation in [LDP](https://www.w3.org/TR/ldp/) data. It is massively based on [JSON-LD](https://json-ld.org/).
+This library is functionally similar to [LDFlex](https://github.com/LDflex/LDflex) but is intended to be minimalist. It is also based on object logic rather than SPARQL logic. Adapters can be something other than SPARQL endpoints and are agnostic (not communica dependent). The authentication mechanics of the SparqlAdapter and FetchlAdapter are freer (solid-auth-client for communica) and easy to configure while being compatible (a CommunicaAdapter is quite possible).
 
 ## InMemory
-Le fonctionnement fondamental n'utilise pas de persistance ni de cache et n'est pas en capacité de faire un fetch LDP. Il permet d'initiliser une instance avec un jeux de données JSON-LD, de naviguer dans celui-ci et d'obtenir des grappes d'objets comparables à la forme framed du jeu de données initial depuis n'importe quel sujet de ce jeu de données.
+The basic operation does not use persistence or cache and is not able to do an LDP fetch. It allows to initialize an instance with a JSON-LD dataset, to browse it and to get clusters of objects comparable to the framed form of the initial dataset from any subject of this dataset.
 
 ## Usage
 ### Import
-import ES6. ldp-navigator est un module ES6.
+import ES6. ldp-navigator is an ES6 module.
 ```
-import LDPNavigator from 'ldp-navigator'
+import LDPNavigator from 'ldp-navigator
 ```
-Si votre projet ne supporte pas les import ES6 vous pouvez passez par 'fix-esm'
+If your project does not support ES6 imports, you can use 'fix-esm'.
 ```
  const LDPNavigator = require("fix-esm").require('ldp-navigator')
 ```
-### Jeux d'essai
-code commun utilisé pour tous les exemples
+### Test Sets
+common code used for all examples
 ```
-const ldpNavigator  = new LDPNavigator();
+const ldpNavigator = new LDPNavigator();
 const initSubject = {
   "@context" :{
     "vocabulary": "http://example.org/vocab#",
@@ -28,21 +32,21 @@ const initSubject = {
   },
   "@graph":[
     {
-      "@id":"myId1",
-      "vocabulary:predicate":"object",
-      "vocabulary:linkedObject":"myId2"
+      "@id": "myId1",
+      "vocabulary:predicate": "object",
+      "vocabulary:linkedObject": "myId2"
     },
     {
-      "@id":"myId2",
-      "vocabulary:predicate":"object",
+      "@id": "myId2",
+      "vocabulary:predicate": "object",
       "vocabulary:linkedObject":[
         "myId1",
         "myId3"
       ]
     },
     {
-      "@id":"myId3",
-      "vocabulary:predicate":"object"
+      "@id": "myId3",
+      "vocabulary:predicate": "object"
     }
   ]
 };
@@ -55,9 +59,9 @@ const inMemorySubject1 = await ldpNavigator.resolveById('myId1');
 inMemorySubject1
 ```
 {
-  "@id":"myId1",
-  "vocabulary:predicate":"object",
-  "vocabulary:linkedObject":"myId2"
+  "@id": "myId1",
+  "vocabulary:predicate": "object",
+  "vocabulary:linkedObject": "myId2"
 }
 ```
 
@@ -70,8 +74,8 @@ expect(linkedObject['@id']).toBe(subject2['@id']);
 linkedObject
 ```
 {
-  "@id":"myId2",
-  "vocabulary:predicate":"object",
+  "@id": "myId2",
+  "vocabulary:predicate": "object",
   "vocabulary:linkedObject":[
     "myId1",
     "myId3"
@@ -99,11 +103,11 @@ const dereferenced3 = await ldpNavigator.dereference(inMemorySubject1,{
 dereferenced1
 ```
 {
-  "@id":"myId1",
-  "vocabulary:predicate":"object",
+  "@id": "myId1",
+  "vocabulary:predicate": "object",
   "vocabulary:linkedObject":{
-    "@id":"myId2",
-    "vocabulary:predicate":"object",
+    "@id": "myId2",
+    "vocabulary:predicate": "object",
     "vocabulary:linkedObject":[
       "myId1",
       "myId3"
@@ -114,17 +118,17 @@ dereferenced1
 dereferenced2
 ```
 {
-  "@id":"myId2",
-  "vocabulary:predicate":"object",
+  "@id": "myId2",
+  "vocabulary:predicate": "object",
   "vocabulary:linkedObject":[
     {
-      "@id":"myId1",
-      "vocabulary:predicate":"object",
-      "vocabulary:linkedObject":"myId2"
+      "@id": "myId1",
+      "vocabulary:predicate": "object",
+      "vocabulary:linkedObject": "myId2"
     },
     {
-      "@id":"myId3",
-      "vocabulary:predicate":"object"
+      "@id": "myId3",
+      "vocabulary:predicate": "object"
     }
   ]
 }
@@ -132,20 +136,20 @@ dereferenced2
 dereferenced3
 ```
 {
-  "@id":"myId1",
-  "vocabulary:predicate":"object",
+  "@id": "myId1",
+  "vocabulary:predicate": "object",
   "vocabulary:linkedObject":{
-    "@id":"myId2",
-    "vocabulary:predicate":"object",
+    "@id": "myId2",
+    "vocabulary:predicate": "object",
     "vocabulary:linkedObject":[
       {
-        "@id":"myId1",
-        "vocabulary:predicate":"object",
-        "vocabulary:linkedObject":"myId2"
+        "@id": "myId1",
+        "vocabulary:predicate": "object",
+        "vocabulary:linkedObject": "myId2"
       },
       {
-        "@id":"myId3",
-        "vocabulary:predicate":"object"
+        "@id": "myId3",
+        "vocabulary:predicate": "object"
       }
     ]
   }
@@ -156,7 +160,7 @@ dereferenced3
 #### forceArray
 
 ```
-const ldpNavigator  = new LDPNavigator({
+const ldpNavigator = new LDPNavigator({
     forceArray=['vocabulary:linkedObject']
   });
 ```
@@ -164,12 +168,12 @@ const ldpNavigator  = new LDPNavigator({
 dereferenced1
 ```
 {
-  "@id":"myId1",
-  "vocabulary:predicate":"object",
+  "@id": "myId1",
+  "vocabulary:predicate": "object",
   "vocabulary:linkedObject":[
     {
-      "@id":"myId2",
-      "vocabulary:predicate":"object",
+      "@id": "myId2",
+      "vocabulary:predicate": "object",
       "vocabulary:linkedObject":[
         "myId1",
         "myId3"
@@ -180,20 +184,24 @@ dereferenced1
 ```
 
 ## Adapters
-Les adapters permettent de compléter le noyau InMemory avec des capacités de connexion et d'interopérabilité. La navigation sur des sujets, pas encore chargée dans l'instance, est alors assimillable à du déréférencement.
-Deux méthodes sont implémentable dans un adapter :
-- resolveById : recherche un sujet par son id.
-- persist : persister un sujet pour le retrouver au prochain resolveById. *not implemented*
+Adapters allow to complete the InMemory core with connection and interoperability capabilities. Browsing on topics, not yet loaded in the instance, is then comparable to referencing.
+Two methods can be implemented in an adapter:
+- resolveById: search a topic by its id.
+- persist : persist a topic to find it at the next resolveById. *not implemented*
 
-Les adapters sont cumulables et affectés avec ```setAdapters()```. Il sont appelés dans l'ordre du tableau passé en paramètres. Une instance de ldp-navigator avec ou sans adapters se manipule de manière identique. Les adpaters vont permettre de rechercher des données hors de la mémoire de l'instance et de les persister pour les retourner plus tard sans dépendre du cyle de vie de l'instance.
+Adapters are cumulative and assigned with ``setAdapters()``. They are called in the order of the array passed as parameters. An instance of ldp-n
+An instance of ldp-navigator with or without adapters is used in the same way. The adpaters will allow to look for data outside the memory of the instance and to persist them to return them later without depending on the life cycle of the instance.
 
 ### FetchAdapter
-Il permet de requeter l'uri d'un sujet qui n'est pas encore InMemory. Les headers sont configurables pour permettre des authentifications ou d'autres paramètres.
+It allows you to request the uri of a subject that is not yet InMemory. The headers are configurable to allow authentications or other parameters.
 *persist N/A*
 
 ### SparqlAdapter
-Il permet requeter un endpoint Sparql http pour trouver un sujet qui n'est pas encore InMemory. Le endpoint, prefix et headers est configurable.
+
+It allows querying a Sparql http endpoint to find a topic that is not yet InMemory. The endpoint, prefix and headers are configurable.
 
 ### localStorageAdapter
+It allows you to query the browser's localStorage for a topic that is not yet InMemory.
 *Not implemented*
-Il permet de requetter dans le localStorage du navigateur un sujet qui n'est pas encore InMemory.
+
+Translated with www.DeepL.com/Translator (free version).
