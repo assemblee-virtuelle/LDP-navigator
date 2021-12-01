@@ -5,7 +5,18 @@ ldp-navigator est un bibliothèque conçue pour faciliter la navigation dans des
 Le fonctionnement fondamentale n'utilise pas de persistance ni de cache et n'est pas en capacité de faire un fetch ldp. il permet d'initiliser une instance avec un jeux de données json-ld, de naviguer dans celui-ci et de d'obtenir des grappe d'objet comparable à la forme framed du jeux de donnée initiale depuis n'importe quel sujet de ce jeux de donnée.
 
 ## Usage
-code commun utlisé pour tous les examples
+### Import
+import ES6. ldp-navigator est un module ES6.
+```
+import LDPNavigator from 'ldp-navigator'
+```
+Si votre projet ne supporte pas les import ES6 vous pouvez passez par 'fix-esm'
+```
+ const LDPNavigator = require("fix-esm").require('ldp-navigator')
+
+```
+### Jeux d'essai
+code commun utilisé pour tous les examples
 ```
 const ldpNavigator  = new LDPNavigator();
 const initSubject = {
@@ -174,7 +185,7 @@ deux méthodes sont implémentable dans un adapter
 - resolveById : recherche un sujet par son id.
 - persist : persister un sujet pour le retrouver au prochain resolveById. *not implemented*
 
-Les adapters sont cumulables et affectés avec ```setAdapters()```. Il sont appelé dans l'ordre du tableau passé en parametre.
+Les adapters sont cumulables et affectés avec ```setAdapters()```. Il sont appelé dans l'ordre du tableau passé en parametre. Une instance de ldp-navigator avec ou sans adapters se manipule de manière identique. Les adpaters vont permettre de rechercher des données hors de la mémoire de l'instance et de les persister pour les retourver plus tard sans dependre du cyle de vie de l'instance.
 
 ### FetchAdapter
 Il permet de requeter l'uri d'un sujet qui n'est pas encore InMemory. Le header est configurable pour permettre des authentificaitons ou d'autres parametres.
