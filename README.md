@@ -65,7 +65,6 @@ inMemorySubject1
 ```
 const inMemorySubject1 = await ldpNavigator.resolveById('myId1');
 const linkedObject = await ldpNavigator.get(inMemorySubject1,'vocabulary:linkedObject');
-expect(linkedObject['@id']).toBe(subject2['@id']);
 ```
 linkedObject
 ```
