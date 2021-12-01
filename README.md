@@ -156,7 +156,7 @@ dereferenced3
 
 ```
 const ldpNavigator  = new LDPNavigator({
-    forceArray=['vocabulary:predicate']
+    forceArray=['vocabulary:linkedObject']
   });
 ```
 
