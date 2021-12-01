@@ -189,7 +189,7 @@ Two methods can be implemented in an adapter:
 - resolveById: search a topic by its id.
 - persist : persist a topic to find it at the next resolveById. *not implemented*
 
-Adapters are cumulative and assigned with ``setAdapters()``. They are called in the order of the array passed as parameters. An instance of ldp-n
+Adapters are cumulative and assigned with ``setAdapters()``. They are called in the order of the array passed as parameters.
 An instance of ldp-navigator with or without adapters is used in the same way. The adpaters will allow to look for data outside the memory of the instance and to persist them to return them later without depending on the life cycle of the instance.
 
 ### FetchAdapter
