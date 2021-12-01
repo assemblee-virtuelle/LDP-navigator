@@ -1,5 +1,6 @@
 # ldp-navigator
 ldp-navigator est un bibliothèque conçue pour faciliter la navigation dans des données ldp. Elle est massivement basé sur json-ld.
+Cette bibliothèque ressemble fonctionnellement à LDFlex mais se veut minimaliste est être plus basé sur une logique objet que sur un logique SPARQL.
 
 ## InMemory
 Le fonctionnement fondamentale n'utilise pas de persistance ni de cache et n'est pas en capacité de faire un fetch ldp. il permet d'initiliser une instance avec un jeux de données json-ld, de naviguer dans celui-ci et de d'obtenir des grappe d'objet comparable à la forme framed du jeux de donnée initiale depuis n'importe quel sujet de ce jeux de donnée.
