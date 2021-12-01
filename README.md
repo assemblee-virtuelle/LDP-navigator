@@ -63,7 +63,7 @@ inMemorySubject1
 
 ### get
 ```
-const inMemorySubject1 = await ldpNavigator.resolveById('myId1');
+const inMemorySubject1 = await ldpNavigator.resolveById('myId2');
 const linkedObject = await ldpNavigator.get(inMemorySubject1,'vocabulary:linkedObject');
 ```
 linkedObject
