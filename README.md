@@ -13,7 +13,6 @@ import LDPNavigator from 'ldp-navigator'
 Si votre projet ne supporte pas les import ES6 vous pouvez passez par 'fix-esm'
 ```
  const LDPNavigator = require("fix-esm").require('ldp-navigator')
-
 ```
 ### Jeux d'essai
 code commun utilisé pour tous les examples
