@@ -1,8 +1,6 @@
-Ldp-navigator trad
+ldp-navigator
 ====
 
-
-# ldp-navigator
 ldp-navigator is a library designed to facilitate navigation in [LDP](https://www.w3.org/TR/ldp/) data. It is massively based on [JSON-LD](https://json-ld.org/).
 This library is functionally similar to [LDFlex](https://github.com/LDflex/LDflex) but is intended to be minimalist. It is also based on object logic rather than SPARQL logic. Adapters can be something other than SPARQL endpoints and are agnostic (not communica dependent). The authentication mechanics of the SparqlAdapter and FetchlAdapter are freer (solid-auth-client for communica) and easy to configure while being compatible (a CommunicaAdapter is quite possible).
 
