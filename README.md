@@ -202,5 +202,3 @@ It allows querying a Sparql http endpoint to find a topic that is not yet InMemo
 ### localStorageAdapter
 It allows you to query the browser's localStorage for a topic that is not yet InMemory.
 *Not implemented*
-
-Translated with www.DeepL.com/Translator (free version).
