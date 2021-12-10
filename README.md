@@ -183,7 +183,7 @@ dereferenced1
 ```
 
 ## Adapters
-Adapters allow to complete the InMemory core with connection and interoperability capabilities. Browsing on topics, not yet loaded in the instance, is then comparable to referencing.
+Adapters allow to complete the InMemory core with connection and interoperability capabilities. Browsing on topics, not yet loaded in the instance, is then comparable to dereferencing.
 Two methods can be implemented in an adapter:
 - resolveById: search a topic by its id.
 - persist : persist a topic to find it at the next resolveById. *not implemented*
