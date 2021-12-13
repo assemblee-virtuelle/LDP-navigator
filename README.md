@@ -2,7 +2,7 @@ ldp-navigator
 ====
 
 ldp-navigator is a library designed to facilitate navigation in [LDP](https://www.w3.org/TR/ldp/) data. It is massively based on [JSON-LD](https://json-ld.org/) technology and [jsonld librairy](https://www.npmjs.com/package/jsonld).
-ldp-navigator is functionally similar to [LDFlex](https://github.com/LDflex/LDflex) but is intended to be minimalist. It is also based on object logic rather than SPARQL logic. Adapters can be something other than SPARQL endpoints and are agnostic (not [communica](https://github.com/comunica/comunica/) dependent). The authentication mechanics of the SparqlAdapter and FetchlAdapter are free (solid-auth-client for communica) and easy to configure while being compatible (a CommunicaAdapter is quite possible).
+ldp-navigator is functionally similar to [LDFlex](https://github.com/LDflex/LDflex) but is intended to be minimalist. It is also based on Sublject logic rather than SPARQL logic. Adapters can be something other than SPARQL endpoints and are agnostic (not [communica](https://github.com/comunica/comunica/) dependent). The authentication mechanics of the SparqlAdapter and FetchlAdapter are free (solid-auth-client for communica) and easy to configure while being compatible (a CommunicaAdapter is quite possible).
 
 ldp-navigator was created as part of the [Data Food Consortium](http://www.datafoodconsortium.org/) project. It was published and it is maintained by [Virtual Assembly](https://www.virtual-assembly.org/) as a stand-alone package.
 
