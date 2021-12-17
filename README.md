@@ -13,7 +13,7 @@ The basic operation does not use persistence or cache and is not able to do an L
 ### Import
 import ES6. ldp-navigator is an ES6 module.
 ```
-import LDPNavigator from 'ldp-navigator
+import LDPNavigator from 'ldp-navigator'
 ```
 If your project does not support ES6 imports, you can use 'fix-esm'.
 ```
