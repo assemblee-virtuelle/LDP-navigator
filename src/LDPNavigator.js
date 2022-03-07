@@ -6,82 +6,174 @@
 
 import jsonld from 'jsonld';
 import sift from 'sift';
-import fetch from  'node-fetch';
+import fetch from 'node-fetch';
 
 class LDPNavigator {
   constructor(config) {
-    this.config=config||{}
+    this.config = config || {}
+    this.context= this.config.context||{};
   }
 
-  async init(contextData){
-    this.context=contextData['@context'];
-    this.flatten= await jsonld.flatten(contextData,this.context);
-    this.graph = this.flatten['@graph'];
-    this.expand = await jsonld.expand(this.flatten);
+  async init(contextData) {
+    let resolvedContextData;
+    if (contextData.includes && contextData.includes('http')){
+      resolvedContextData = await this.resolveById(contextData);
+    }else{
+      resolvedContextData = contextData;
+      this.context = {...this.context,...resolvedContextData['@context']}
+      this.flatten = await jsonld.flatten(resolvedContextData, this.context);
+      this.graph = this.flatten['@graph'];
+      this.expand = await jsonld.expand(this.flatten);
+    }
   }
 
-  setAdapters(adapters){
-    this.adapters=adapters;
+  setAdapters(adapters) {
+    this.adapters = adapters;
   }
 
   //
-  async filterInMemory(filter){
+  async filterInMemory(filter) {
 
     const result = this.graph.filter(sift(filter));
     return result;
   }
   //
-  async findInMemory(filter){
+  async findInMemory(filter) {
     // console.log('ALLLOOO');
     const filtered = await this.filterInMemory(filter);
     // console.log('filtered',filtered.length,filtered);
-    if(filtered.length==1){
+    if (filtered.length == 1) {
       return filtered[0];
-    }else if (filtered.length>1) {
+    } else if (filtered.length > 1) {
       throw new Error(`to many results applying filter`)
     } else {
       throw new Error(`no results applying filter`)
     }
   }
 
-  async resolveById(id,noContext){
+  async addToMemory(resource){
+    this.context = {...this.context, ...resource['@context']};
+    const {
+      '@context': context,
+      ...noContext
+    } = resource
+    if (this.flatten){
+      this.flatten['@graph'].push(noContext);
+      this.flatten['@context']=this.context;
+    }else{
+      this.flatten = await jsonld.flatten(resource, this.context);
+    }
+
+    this.graph = this.flatten['@graph'];
+    this.expand = await jsonld.expand(this.flatten);
+  }
+
+  async resolveById(id, options) {
+    // console.log('resolveById',id);
 
     let result = undefined
-    if (result==undefined){
+    if (result == undefined) {
       // let resultInMemory = await this.findInMemory({'@id':id})
-      let resultInMemory = this.graph.find(f=>f["@id"]==id);
-      if (resultInMemory) {
-        result= resultInMemory;
+      const unprefixedId= this.unPrefix(id);
+      if(this.expand){
+        let resultInMemory = this.expand.find(f => f["@id"] == id);
+        // console.log('resultInMemory',resultInMemory);
+        // console.log(this.graph);
+        if (resultInMemory) {
+          const compactInMemory= await jsonld.compact(resultInMemory,this.context);
+          // console.log('compactInMemory',compactInMemory);
+          if (options && options.expand==true){
+            result = resultInMemory;
+          }else if (options && options.noContext==true){
+            const {
+              '@context': context,
+              ...noContext
+            } = compactInMemory;
+            result=noContext;
+          } else {
+            result=compactInMemory
+          }
+        }
+        // console.log('resolveById result',result);
       }
     }
-    if (result==undefined){
-      for (var adapter of this.adapters) {
+    // console.log(result == undefined);
+    if (result == undefined) {
+      // console.log('id not found ',id);
+      for (let i = 0; i < this.adapters.length; i++) {
+        const adapter= this.adapters[i];
+        // console.log('adapter',adapter);
         let resultAdapter = await adapter.resolveById(id);
-        if (resultAdapter['@id']){
-          resultAdapter = await jsonld.compact(resultAdapter,this.context);
-          const {'@context':context,...noContext}= resultAdapter;
-          this.flatten['@graph'].push(noContext);
-          this.graph = this.flatten['@graph'];
-          this.expand = await jsonld.expand(this.flatten);
-          result= noContext?noContext:resultAdapter;
+        // console.log('resultAdapter',resultAdapter);
+        if (resultAdapter && (resultAdapter['@id'] || resultAdapter['@graph'])) {
+
+          // console.log('BEFORE COMPACT',resultAdapter,this.context);
+
+          resultAdapter = await jsonld.compact(resultAdapter, this.context);
+          // console.log('AFTER COMPACT',resultAdapter);
+          // console.log('resultAdapter',resultAdapter);
+
+          // if (resultAdapter['@graph']){
+          //   resultAdapter=resultAdapter['@graph'].filter(r=>r['@id']==)
+          // }
+
+          for (let j = i-1; j >= 0; j--) {
+            const persistAdapter = this.adapters[j];
+            // console.log('persistAdapter',persistAdapter);
+            if (persistAdapter.persist){
+              const adapterPersistResult =  await persistAdapter.persist(resultAdapter);
+              resultAdapter = await jsonld.compact(adapterPersistResult, this.context);
+            }
+          }
+
+
+
+          if(resultAdapter['@graph']){
+            for (let subject of resultAdapter['@graph']){
+              await this.addToMemory({
+                '@context':resultAdapter['@context'],
+                ...subject
+              })
+            }
+          }else{
+            await this.addToMemory(resultAdapter)
+          }
+
+          result=this.resolveById(id, options)
           break;
         }
-      };
+      }
+
     }
     return result;
   }
 
-  unPrefix(property){
+  async persist() {
+    for (var adapter of this.adapters) {
+      if (adapter.persist){
+        // console.log('persist',this.expand);
+        // console.log('LDP Navigator BEFORE persist');
+        await adapter.persist(this.expand);
+        // console.log('LDP Navigator AFTER persist');
+      }
+    }
+  }
+
+
+  unPrefix(property) {
     let out;
     let url;
+    // console.log('this.context',this.context);
     for (const [key, value] of Object.entries(this.context)) {
-      const regex  = new RegExp(`${key}:(.*)`,'gm');
+      // console.log('unPrefix',key, value);
+      const regex = new RegExp(`${key}:(.*)`, 'gm');
       // const regex = /`${key}:(.*)`/gm;
       const result = regex.exec(property);
-      if (result!=null){
+      // console.log('regex',property,result);
+      if (result != null) {
         // out = result[1];
         // url = value;
-        out = value+result[1]
+        out = value + result[1]
         break;
       }
     }
@@ -89,37 +181,40 @@ class LDPNavigator {
     return out;
   }
 
-  async get(mainData, property,noContext) {
+  async get(mainData, property, noContext) {
     // console.log('GET',mainData,property);
     const unPrefixedProperty = this.unPrefix(property);
     // console.log('mainData',mainData);
     // console.log('expand',JSON.stringify(this.expand));
-    const mainDataInNavigator = await this.expand.find(e=>e['@id']==mainData['@id']);
+    const mainDataInNavigator = await this.expand.find(e => e['@id'] == mainData['@id']);
+    // console.log('mainDataInNavigator',mainDataInNavigator);
+    // console.log('unPrefixedProperty',property,unPrefixedProperty);
     const rawProperty = mainDataInNavigator[unPrefixedProperty];
     // let rawProperty = mainDataInNavigator[property];
     // console.log(mainDataInNavigator,property,unPrefixedProperty,rawProperty);
-    if(rawProperty){
-      if(!Array.isArray(rawProperty)){
-        rawProperty=[rawProperty];
+    // console.log('rawProperty',rawProperty);
+    if (rawProperty) {
+      if (!Array.isArray(rawProperty)) {
+        rawProperty = [rawProperty];
       }
 
-      let out=[];
+      let out = [];
       for (var prop of rawProperty) {
-        if(prop['@id']){
+        if (prop['@id']) {
           // const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
-          const dereference = await this.resolveById(prop['@id'],true);
+          const dereference = await this.resolveById(prop['@id'], {noContext:true});
           out.push(dereference);
-        }else if(prop['@value']){
+        } else if (prop['@value']) {
           // return prop['@value'];
           out.push(prop['@value'])
         }
       }
 
-      if(!(Array.isArray(mainData[property])) && out.length==1 && !(this.config.forceArray && this.config.forceArray.includes(property))){
-        out=out[0];
+      if (!(Array.isArray(mainData[property])) && out.length == 1 && !(this.config.forceArray && this.config.forceArray.includes(property))) {
+        out = out[0];
       }
       return out
-    }else{
+    } else {
       return undefined;
     }
   }
@@ -127,35 +222,43 @@ class LDPNavigator {
   async dereference(mainData, propertiesSchema) {
     // console.log('dereference',mainData,propertiesSchema);
 
-    if(Array.isArray(mainData)){
+    if (Array.isArray(mainData)) {
       let result = [];
       for (var mainDataIteration of mainData) {
-        result.push(await this.dereference(mainDataIteration,propertiesSchema))
+        result.push(await this.dereference(mainDataIteration, propertiesSchema))
       }
       return result;
-    }else{
+    } else if(mainData && mainData['@id']) {
       // console.log('dereference CALL',mainData,propertiesSchema);
-      let resultData={...mainData};
-      let propertiesSchemaArray=[];
-      if (!Array.isArray(propertiesSchema)){
-        propertiesSchemaArray=[propertiesSchema];
-      }else {
-        propertiesSchemaArray=[...propertiesSchema]
+      let resultData = {
+        ...mainData
+      };
+
+      let propertiesSchemaArray = [];
+      if (!Array.isArray(propertiesSchema)) {
+        propertiesSchemaArray = [propertiesSchema];
+      } else {
+        propertiesSchemaArray = [...propertiesSchema]
       }
+
       for (var propertySchema of propertiesSchemaArray) {
-        const property= propertySchema.p;
-        const reference = await this.get(mainData, property,true);
-        if (propertySchema.n && reference!=undefined){
-        // console.log('dereference NEXT',reference);
-          const dereference = await this.dereference(reference,propertySchema.n);
+        const property = propertySchema.p;
+        const reference = await this.get(mainData, property, true);
+        // console.log('reference',reference);
+
+        if (propertySchema.n && reference != undefined) {
+          // console.log('dereference NEXT',reference);
+          const dereference = await this.dereference(reference, propertySchema.n);
           // console.log('dereference NEXT END');
           resultData[property] = dereference;
-        }else {
+        } else {
           // console.log('dereference LAST',reference);
           resultData[property] = reference;
         }
       }
       return resultData;
+    } else {
+      return mainData;
     }
   }
 }

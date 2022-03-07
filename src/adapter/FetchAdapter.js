@@ -6,9 +6,19 @@ class FetchAdapter {
   }
 
   async resolveById(id){
-    const response = await fetch(id,{headers:this.config.headers});
-    const result = await response.json();
-    return result;
+    // console.log('id',id);
+    // console.log('fetch ',id);
+    const response = await fetch(id,{headers:this.config?this.config.headers:{}});
+    // console.log(response.status);
+    if (response.status==200){
+      const result = await response.json();
+      // console.log('fetch result',result);
+      return result;
+    }else{
+      return undefined
+    }
+
+
   }
 }
 
