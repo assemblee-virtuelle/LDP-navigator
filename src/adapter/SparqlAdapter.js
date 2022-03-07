@@ -1,10 +1,19 @@
 'use strict';
 
-const jsonld = require('jsonld');
-const fetch = require('node-fetch');
-const urljoin = require('url-join');
-const JsonLdParser = require('jsonld-streaming-parser').JsonLdParser;
-const streamifyString = require('streamify-string');
+// const jsonld = require('jsonld');
+// const fetch = require('node-fetch');
+// const urljoin = require('url-join');
+// const JsonLdParser = require('jsonld-streaming-parser').JsonLdParser;
+// const streamifyString = require('streamify-string');
+
+
+
+import jsonld from 'jsonld';
+import fetch from 'node-fetch';
+import urljoin from 'url-join';
+import jsonldStreamingParser from 'jsonld-streaming-parser';
+const JsonLdParser = jsonldStreamingParser.JsonLdParser;
+import streamifyString from 'streamify-string';
 
 class SparqlAdapter {
   constructor(config) {
