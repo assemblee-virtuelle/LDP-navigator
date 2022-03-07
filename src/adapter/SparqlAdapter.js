@@ -10,9 +10,10 @@
 
 import jsonld from 'jsonld';
 import fetch from 'node-fetch';
-import urljoin from 'url-join';
 import jsonldStreamingParser from 'jsonld-streaming-parser';
-const JsonLdParser = jsonldStreamingParser.JsonLdParser;
+import {JsonLdParser} from "jsonld-streaming-parser";
+// console.log(jsonldStreamingParser);
+// const JsonLdParser = jsonldStreamingParser.JsonLdParser;
 import streamifyString from 'streamify-string';
 
 class SparqlAdapter {
@@ -23,10 +24,10 @@ class SparqlAdapter {
   async resolveById(id,forceResolveById) {
     if (forceResolveById==true || this.config.skeepResolveById != true) {
       // console.log('SPARQL resolveById', id);
-      const response = await fetch(this.config.endpoint, {
+      const response = await fetch(this.config.query.endpoint, {
         method: 'POST',
         body: `
-        ${this.config.prefix?this.config.prefix:''}
+        ${this.config.query.prefix?this.config.query.prefix:''}
         CONSTRUCT  {
           ?s1 ?p1 ?o1 .
         }
@@ -35,7 +36,7 @@ class SparqlAdapter {
           ?s1 ?p1 ?o1 .
         }
         `,
-        headers: this.config.headers
+        headers: this.config.query.headers
       });
 
       // const tmp = await response.text();
@@ -181,13 +182,10 @@ class SparqlAdapter {
 
           // console.log('query',query);
 
-          const response = await fetch(urljoin('http://dfc-fuseki:3030/', 'localData', 'update'), {
+          const response = await fetch(this.config.update.endpoint, {
             body: query,
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/sparql-update',
-              Authorization: 'Basic ' + Buffer.from('admin' + ':' + 'admin').toString('base64')
-            }
+            headers: this.config.update.headers
           });
           resource = this.resolveById(resource['@id'],true)
         } else {
@@ -196,13 +194,10 @@ class SparqlAdapter {
             format: 'application/n-quads'
           });
 
-          const response = await fetch(urljoin('http://dfc-fuseki:3030/', 'localData', 'update'), {
+          const response = await fetch(this.config.update.endpoint, {
             body: `INSERT DATA { ${rdf} }`,
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/sparql-update',
-              Authorization: 'Basic ' + Buffer.from('admin' + ':' + 'admin').toString('base64')
-            }
+            headers: this.config.update.headers
           });
           // console.log('resolveById post insert');
           resource = this.resolveById(resource['@id'],true)

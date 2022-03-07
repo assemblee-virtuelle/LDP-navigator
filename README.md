@@ -265,33 +265,48 @@ HTTP headers
 It allows querying a Sparql http endpoint to find a topic that is not yet InMemory. The endpoint, prefix and headers are configurable.
 ```
 new SparqlAdapter({
-  queryEndpoint: '',
-  updateEndpoint: '',
-  prefix: '',
-  headers: {},
+  query:{
+    endpoint :'',
+    headers:{},
+    prefix: ''
+  },
+  update:{
+    endpoint :'',
+    headers:{},
+  },
   skeepResolveById: true
 })
 ```
-#### queryEndpoint
+#### query
+configuration tu execute SPARQL query.
+
+##### endpoint
 mandatory.
 
-url of sparql Enpoint to send SPARQL query
+Url of sparql Enpoint to send SPARQL query by HTTP.
 
-#### updateEndpoint
-mandatory if persist using.
+##### headers
+mandatory if triplestore needs authentificaiton.
 
-url of sparql Enpoint to send SPARQL update
+HTTP headers.
 
-#### prefix
+##### prefix
 optional.
 
 All SPARQL prefix in on string.
 These prefixes are used in each sparql query and allow to build `@context` if priple store support it.
 
-#### headers
+#### update
+
+##### endpoint
+mandatory.
+
+Url of sparql Enpoint to send SPARQL update by HTTP. Can be same that `query.endpoint` but is commonly not.
+
+##### headers
 mandatory if triplestore needs authentificaiton.
 
-HTTP headers
+HTTP headers.
 
 #### skeepResolveById
 optional.
