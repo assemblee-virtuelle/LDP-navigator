@@ -15,9 +15,15 @@ import ES6. ldp-navigator is an ES6 module.
 ```
 import LDPNavigator from 'ldp-navigator'
 ```
+```
+import { LDPNavigator } from "ldp-navigator";
+```
 If your project does not support ES6 imports, you can use 'fix-esm'.
 ```
  const LDPNavigator = require("fix-esm").require('ldp-navigator')
+```
+```
+ const {LDPNavigator} = require("fix-esm").require('ldp-navigator')
 ```
 ### Test Sets
 common code used for all examples
@@ -52,6 +58,10 @@ const initSubject = {
 };
 await ldpNavigator.init(initSubject)
 ```
+### init
+Initialise data in memory.
+Can be an uri. In this case, `ìnit('myId1')` call `resolveById('myId1')`.
+
 ### resolveById
 ```
 const inMemorySubject1 = await ldpNavigator.resolveById('myId1');
@@ -64,6 +74,7 @@ inMemorySubject1
   "vocabulary:linkedObject": "myId2"
 }
 ```
+this method can be use without previous `init()` method. In this case, LDPNavigator try to call `resolveById('myId1')` on adapters.
 
 ### get
 ```
@@ -154,13 +165,51 @@ dereferenced3
   }
 }
 ```
+### get
+```
+await ldpNavigator.persist();
+```
+persist all data in memory to adapters. persist method is called on each adapters with data in memory.
 
-### config
-#### forceArray
+## Config
+### context
+Context config is highly recommended. Context will be used whenever data are provided by adapters and subject uri or predicate uri needs be resolved. resolveByUri provide data express in this context. Context is extend by data provided through adapters if they provide additional context.
+```
+const ldpNavigator = new LDPNavigator({
+    context:{
+      prefix:uri
+    }
+  });
+```
+
+### adapters
+See Adapters Chapiter.
+Adapters can be set by config or setter.
+Adapter have to be replaced by specifc implementation in this example.
+```
+const ldpNavigator = new LDPNavigator({
+    adapters:[
+      new Adapter()
+    ]
+  });
+```
+Example whith FetchAdapter and SparqlAdapter. See chapters concerning these adapters.
+```
+import { SparqlAdapter,FetchAdapter, LDPNavigator } from "ldp-navigator";
+const ldpNavigator = new LDPNavigator({
+    adapters:[
+      new SparqlAdapter({...}),
+      new FetchAdapter({...})
+    ]
+  });
+```
+
+
+### forceArray
 
 ```
 const ldpNavigator = new LDPNavigator({
-    forceArray=['vocabulary:linkedObject']
+    forceArray:['vocabulary:linkedObject']
   });
 ```
 
@@ -183,21 +232,65 @@ dereferenced1
 ```
 
 ## Adapters
-Adapters allow to complete the InMemory core with connection and interoperability capabilities. Browsing on topics, not yet loaded in the instance, is then comparable to dereferencing.
-Two methods can be implemented in an adapter:
-- resolveById: search a topic by its id.
-- persist : persist a topic to find it at the next resolveById. *not implemented*
-
-Adapters are cumulative and assigned with ``setAdapters()``. They are called in the order of the array passed as parameters.
+Adapters allow to complete the InMemory core with connection and interoperability capabilities. Browsing on topics, not yet loaded in the instance, is comparable to dereferencing.
+Adapters are cumulative and assigned with constructor config or ``setAdapters()``. They are called in the order of the array passed as parameters.
 An instance of ldp-navigator with or without adapters is used in the same way. The adpaters will allow to look for data outside the memory of the instance and to persist them to return them later without depending on the life cycle of the instance.
+When LDPNavigator needs to resolveById (diret call, dereference, get...), it try to resolve in memory. If data is not in memory, adapter try to ResolveById in order of array. If an adapter resolve subject, upper adapter persist method are called.
+
+Two methods can be implemented in an adapter : resolveById, persist
+### resolveById
+Search a topic by its id/uri.
+### persist
+persist a subject to find it at the next resolveById.
+Have to support json-ld specification (`@context` and `@id` or `@graph`);
 
 ### FetchAdapter
 It allows you to request the uri of a subject that is not yet InMemory. The headers are configurable to allow authentications or other parameters.
 *persist N/A*
 
+```
+new FetchAdapter({
+  headers: {}
+})
+```
+
+#### headers
+mandatory if triplestore needs authentificaiton.
+HTTP headers
+
 ### SparqlAdapter
 
 It allows querying a Sparql http endpoint to find a topic that is not yet InMemory. The endpoint, prefix and headers are configurable.
+```
+new SparqlAdapter({
+  queryEndpoint: '',
+  updateEndpoint: '',
+  prefix: '',
+  headers: {},
+  skeepResolveById: true
+})
+```
+#### queryEndpoint
+mandatory
+url of sparql Enpoint to send SPARQL query
+
+#### updateEndpoint
+mandatory if persist using
+url of sparql Enpoint to send SPARQL update
+
+#### prefix
+optional.
+All SPARQL prefix in on string.
+these prefixes are used in each sparql query and allow to build `@context` if priple store support it.
+
+#### headers
+mandatory if triplestore needs authentificaiton.
+HTTP headers
+
+#### skeepResolveById
+optional
+not use it in normal usage.
+if this option activated, adapter skeep resolveById in adpaters stck resolution during `resolveById()` call of LDPNavigator. This feature allow to not considering resolving data in triple store and force du resolve id by next adapter.
 
 ### localStorageAdapter
 It allows you to query the browser's localStorage for a topic that is not yet InMemory.

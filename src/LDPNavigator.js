@@ -12,6 +12,11 @@ class LDPNavigator {
   constructor(config) {
     this.config = config || {}
     this.context= this.config.context||{};
+    this.adapters= this.config.adapters||[];
+  }
+
+  setAdapters(adapters) {
+    this.adapters = adapters;
   }
 
   async init(contextData) {
@@ -27,9 +32,7 @@ class LDPNavigator {
     }
   }
 
-  setAdapters(adapters) {
-    this.adapters = adapters;
-  }
+
 
   //
   async filterInMemory(filter) {
