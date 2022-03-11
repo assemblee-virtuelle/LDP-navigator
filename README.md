@@ -274,7 +274,7 @@ new SparqlAdapter({
     endpoint :'',
     headers:{},
   },
-  skeepResolveById: true
+  skipResolveById: true
 })
 ```
 #### query
@@ -308,11 +308,11 @@ mandatory if triplestore needs authentificaiton.
 
 HTTP headers.
 
-#### skeepResolveById
+#### skipResolveById
 optional.
 not use it in normal usage.
 
-if this option activated, adapter skeep resolveById in adpaters stck resolution during `resolveById()` call of LDPNavigator. This feature allow to not considering resolving data in triple store and force du resolve id by next adapter.
+if this option activated, adapter skip resolveById in adpaters stck resolution during `resolveById()` call of LDPNavigator. This feature allow to not considering resolving data in triple store and force du resolve id by next adapter.
 
 ### localStorageAdapter
 It allows you to query the browser's localStorage for a topic that is not yet InMemory.

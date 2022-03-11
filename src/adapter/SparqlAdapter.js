@@ -22,7 +22,7 @@ class SparqlAdapter {
   }
 
   async resolveById(id,forceResolveById) {
-    if (forceResolveById==true || this.config.skeepResolveById != true) {
+    if (forceResolveById==true || this.config.skipResolveById != true) {
       // console.log('SPARQL resolveById', id);
       const response = await fetch(this.config.query.endpoint, {
         method: 'POST',
@@ -125,7 +125,7 @@ class SparqlAdapter {
   async persist(resource) {
     // console.log('persist resource',resource['@id']?resource['@id']:Array.isArray(resource)?'Array':'?');
     // console.trace("persist")
-    if (this.config.skeepPersist != true) {
+    if (this.config.skipPersist != true) {
       if (Array.isArray(resource)) {
         let result=[];
         for (var r of resource) {
