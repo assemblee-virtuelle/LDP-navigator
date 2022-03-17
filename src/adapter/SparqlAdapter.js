@@ -32,8 +32,10 @@ class SparqlAdapter {
           ?s1 ?p1 ?o1 .
         }
         WHERE {
-          BIND(<${id}> AS ?s1) .
-          ?s1 ?p1 ?o1 .
+          GRAPH ?g {
+            BIND(<${id}> AS ?s1) .
+            ?s1 ?p1 ?o1 .
+          }
         }
         `,
         headers: this.config.query.headers
