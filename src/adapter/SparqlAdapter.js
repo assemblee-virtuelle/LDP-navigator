@@ -22,6 +22,7 @@ class SparqlAdapter {
   }
 
   async resolveById(id,forceResolveById) {
+    // console.log('resolveById',id);
     if (forceResolveById==true || this.config.skipResolveById != true) {
       // console.log('SPARQL resolveById', id);
       const response = await fetch(this.config.query.endpoint, {
@@ -32,9 +33,16 @@ class SparqlAdapter {
           ?s1 ?p1 ?o1 .
         }
         WHERE {
-          GRAPH ?g {
+          {
             BIND(<${id}> AS ?s1) .
-            ?s1 ?p1 ?o1 .
+                      ?s1 ?p1 ?o1 .
+          }
+          UNION
+          {
+            GRAPH ?g {
+              BIND(<${id}> AS ?s1) .
+              ?s1 ?p1 ?o1 .
+            }
           }
         }
         `,
