@@ -218,7 +218,12 @@ class LDPNavigator {
       }
       return out
     } else {
-      return undefined;
+      if(this.config.forceArray && this.config.forceArray.includes(property)){
+          return [];
+      } else{
+          return undefined;
+      }
+
     }
   }
 
