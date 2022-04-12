@@ -21,40 +21,44 @@ class SparqlAdapter {
     this.config = config;
   }
 
-  async resolveById(id,forceResolveById) {
+  async resolveById(id,forceResolveById,depth) {
     // console.log('resolveById',id);
+    // console.log('sparql depth',depth);
     if (forceResolveById==true || this.config.skipResolveById != true) {
-      // console.log('SPARQL resolveById', id);
+      console.log(' '.repeat(depth),'SPARQL resolveById', id);
+      const query =  `
+      ${this.config.query.prefix?this.config.query.prefix:''}
+      CONSTRUCT  {
+        ?s1 ?p1 ?o1 .
+      }
+      WHERE {
+        {
+          BIND(<${id}> AS ?s1) .
+                    ?s1 ?p1 ?o1 .
+        }
+        UNION
+        {
+          GRAPH ?g {
+            BIND(<${id}> AS ?s1) .
+            ?s1 ?p1 ?o1 .
+          }
+        }
+      }
+      `
+      // console.log(query);
       const response = await fetch(this.config.query.endpoint, {
         method: 'POST',
-        body: `
-        ${this.config.query.prefix?this.config.query.prefix:''}
-        CONSTRUCT  {
-          ?s1 ?p1 ?o1 .
-        }
-        WHERE {
-          {
-            BIND(<${id}> AS ?s1) .
-                      ?s1 ?p1 ?o1 .
-          }
-          UNION
-          {
-            GRAPH ?g {
-              BIND(<${id}> AS ?s1) .
-              ?s1 ?p1 ?o1 .
-            }
-          }
-        }
-        `,
+        body: query,
         headers: this.config.query.headers
       });
 
-      // const tmp = await response.text();
-      // console.log('tmp',tmp);
-      // let parsed= JSON.parse(tmp);
+      const raw = await response.text();
+      // console.log('raw',raw);
+      let parsed= JSON.parse(raw);
       // console.log('parsed',parsed);
+      return parsed;
 
-      const result = await response.json();
+      // const result = await response.json();
       // await this.persist(result);
       // console.log('SpasrqlAdapter resolveById',result);
       return result;

@@ -71,9 +71,9 @@ class LDPNavigator {
     this.expand = await jsonld.expand(this.flatten);
   }
 
-  async resolveById(id, options) {
+  async resolveById(id, options,depth) {
     // console.log('resolveById',id);
-
+    depth=depth||0;
     let result = undefined
     if (result == undefined) {
       // let resultInMemory = await this.findInMemory({'@id':id})
@@ -106,7 +106,8 @@ class LDPNavigator {
       for (let i = 0; i < this.adapters.length; i++) {
         const adapter= this.adapters[i];
         // console.log('adapter',adapter);
-        let resultAdapter = await adapter.resolveById(id);
+        // console.log('navigator depth',depth);
+        let resultAdapter = await adapter.resolveById(id,undefined,depth);
         // console.log('resultAdapter',resultAdapter);
         if (resultAdapter && (resultAdapter['@id'] || resultAdapter['@graph'])) {
 
@@ -184,7 +185,8 @@ class LDPNavigator {
     return out;
   }
 
-  async get(mainData, property, noContext) {
+  async get(mainData, property, noContext,depth) {
+    depth=depth||0;
     // console.log('GET',mainData,property);
     const unPrefixedProperty = this.unPrefix(property);
     // console.log('mainData',mainData);
@@ -205,7 +207,7 @@ class LDPNavigator {
       for (var prop of rawProperty) {
         if (prop['@id']) {
           // const dereference = this.graph.find(f=>f["@id"]==prop['@id']);
-          const dereference = await this.resolveById(prop['@id'], {noContext:true});
+          const dereference = await this.resolveById(prop['@id'], {noContext:true},depth);
           out.push(dereference);
         } else if (prop['@value']) {
           // return prop['@value'];
@@ -227,13 +229,14 @@ class LDPNavigator {
     }
   }
 
-  async dereference(mainData, propertiesSchema) {
+  async dereference(mainData, propertiesSchema, depth) {
     // console.log('dereference',mainData,propertiesSchema);
+    depth=depth||1;
 
     if (Array.isArray(mainData)) {
       let result = [];
       for (var mainDataIteration of mainData) {
-        result.push(await this.dereference(mainDataIteration, propertiesSchema))
+        result.push(await this.dereference(mainDataIteration, propertiesSchema,depth))
       }
       return result;
     } else if(mainData && mainData['@id']) {
@@ -250,13 +253,14 @@ class LDPNavigator {
       }
 
       for (var propertySchema of propertiesSchemaArray) {
+        console.log(' '.repeat(depth),'derefence', propertySchema.p, 'of',mainData["@id"]);
         const property = propertySchema.p;
-        const reference = await this.get(mainData, property, true);
+        const reference = await this.get(mainData, property, true,depth);
         // console.log('reference',reference);
 
         if (propertySchema.n && reference != undefined) {
           // console.log('dereference NEXT',reference);
-          const dereference = await this.dereference(reference, propertySchema.n);
+          const dereference = await this.dereference(reference, propertySchema.n,depth+1);
           // console.log('dereference NEXT END');
           resultData[property] = dereference;
         } else {
