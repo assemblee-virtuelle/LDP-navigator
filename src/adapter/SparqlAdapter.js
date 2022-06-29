@@ -25,7 +25,7 @@ class SparqlAdapter {
     // console.log('resolveById',id);
     // console.log('sparql depth',depth);
     if (forceResolveById==true || this.config.skipResolveById != true) {
-      console.log(' '.repeat(depth),'SPARQL resolveById', id);
+      // console.log(' '.repeat(depth),'SPARQL resolveById', id);
       const query =  `
       ${this.config.query.prefix?this.config.query.prefix:''}
       CONSTRUCT  {
@@ -138,9 +138,10 @@ class SparqlAdapter {
 
   async persist(resource) {
     // console.log('persist resource',resource['@id']?resource['@id']:Array.isArray(resource)?'Array':'?');
-    // console.trace("persist")
+    // console.trace("log ressource",resource)
     if (this.config.skipPersist != true) {
       if (Array.isArray(resource)) {
+        // console.log('ARRAY',resource);
         let result=[];
         for (var r of resource) {
           // console.log('persist Array',r['@id']);
@@ -152,12 +153,13 @@ class SparqlAdapter {
         }
         return result
       } else if (resource['@graph']) {
+        // console.log('GRAPH',resource);
         let result=[]
         for (var r of resource['@graph']) {
-          const persistResult = await this.persist({
-            '@context':resource['@context'],
-            ...r
-          })
+          if(resource['@context']){
+            r['@context']=resource['@context'];
+          }
+          const persistResult = await this.persist({...r})
           if(persistResult){
             const {
               '@context': context,
@@ -171,7 +173,7 @@ class SparqlAdapter {
           '@graph':result
         }
 
-      } else {
+      } else if (resource['@id'] && !resource['@id'].includes('_:')) {
         // console.log('persist update raw',resource);
         let oldData = await this.resolveById(resource['@id'],true);
         // console.log('oldData',oldData);

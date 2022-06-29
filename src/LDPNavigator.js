@@ -37,6 +37,7 @@ class LDPNavigator {
   //
   async filterInMemory(filter) {
 
+    // console.log('filterInMemory',this.graph);
     const result = this.graph.filter(sift(filter));
     return result;
   }
@@ -153,6 +154,7 @@ class LDPNavigator {
   }
 
   async persist() {
+    // console.log('expand',this.expand);
     for (var adapter of this.adapters) {
       if (adapter.persist){
         // console.log('persist',this.expand);
@@ -253,7 +255,7 @@ class LDPNavigator {
       }
 
       for (var propertySchema of propertiesSchemaArray) {
-        console.log(' '.repeat(depth),'derefence', propertySchema.p, 'of',mainData["@id"]);
+        // console.log(' '.repeat(depth),'dereference', propertySchema.p, 'of',mainData["@id"]);
         const property = propertySchema.p;
         const reference = await this.get(mainData, property, true,depth);
         // console.log('reference',reference);
