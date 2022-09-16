@@ -54,8 +54,7 @@ class SparqlAdapter {
         }
       }
       `
-console.log('query',query);
-      // console.log(query);
+
       const response = await fetch(this.config.query.endpoint, {
         method: 'POST',
         body: query,
@@ -65,8 +64,7 @@ console.log('query',query);
       const raw = await response.text();
 
       let parsed= JSON.parse(raw);
-      // console.log('parsed',JSON.stringify(parsed));
-      console.log('parsed',parsed);
+
       return parsed;
 
       // const result = await response.json();

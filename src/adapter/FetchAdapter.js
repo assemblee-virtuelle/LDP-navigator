@@ -26,8 +26,8 @@ class FetchAdapter {
           return framed;
         }else{
           console.error(`fetch ${id} return ${response.status} status and content-type ${response.headers.get('content-type')}`);
-          console.log(`status have to be 200 et content-type 'application/json' or 'application/ld+json'`);
-          console.log(raw);
+          console.error(`status have to be 200 et content-type 'application/json' or 'application/ld+json'`);
+          // console.log(raw);
           return undefined;
         }
       } else {

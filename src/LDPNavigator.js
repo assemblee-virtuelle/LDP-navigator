@@ -48,7 +48,7 @@ class LDPNavigator {
     } else {
       resolvedContextData = contextData;
       // console.log("Memory",resolvedContextData);
-      console.log('addTo Memory <=init');
+      // console.log('addTo Memory <=init');
       await this.addToMemory(resolvedContextData);
       // this.context = {...this.context,...resolvedContextData['@context']}
       // this.flatten = await jsonld.flatten(resolvedContextData, this.context);
@@ -283,11 +283,11 @@ class LDPNavigator {
             const persistAdapter = this.adapters[j];
             // console.log('persistAdapter',persistAdapter);
             if (persistAdapter.persist) {
-              console.log('PERSIST');
+              // console.log('PERSIST');
               const adapterPersistResult = await persistAdapter.persist(resultAdapter);
               resultAdapter = await jsonld.compact(adapterPersistResult, this.context);
             } else {
-              console.log('NO PERSIST');
+              // console.log('NO PERSIST');
             }
           }
 
