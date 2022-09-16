@@ -40,6 +40,7 @@ test('read literal from 1 subject',async ()=>{
   // console.log(initSubject);
   await ldpNavigator.init(initSubject)
   const inMemorySubject = await ldpNavigator.resolveById(initSubject['@id']);
+  console.log('inMemorySubject',inMemorySubject);
   expect(inMemorySubject['@id']).toBe(initSubject['@id'])
   const value = await ldpNavigator.get(inMemorySubject,'vocabulary:predicate');
   expect(value).toBe(initSubject['vocabulary:predicate'])

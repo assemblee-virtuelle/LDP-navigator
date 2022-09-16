@@ -6,8 +6,8 @@
 // const JsonLdParser = require('jsonld-streaming-parser').JsonLdParser;
 // const streamifyString = require('streamify-string');
 
-
-
+import ldpSemapps from '@semapps/ldp';
+// import {buildDereferenceQuery} from '@semapps/ldp';
 import jsonld from 'jsonld';
 import fetch from 'node-fetch';
 import jsonldStreamingParser from 'jsonld-streaming-parser';
@@ -22,7 +22,13 @@ class SparqlAdapter {
   }
 
   async resolveById(id,forceResolveById,depth) {
-    // console.log('resolveById',id);
+    let dereferenceQuery = this.config.dereference
+    if (this.config.dereference){
+      dereferenceQuery =ldpSemapps.buildDereferenceQuery(this.config.dereference);
+    }
+
+    // console.log('dereferenceQuery',dereferenceQuery);
+
     // console.log('sparql depth',depth);
     if (forceResolveById==true || this.config.skipResolveById != true) {
       // console.log(' '.repeat(depth),'SPARQL resolveById', id);
@@ -30,21 +36,25 @@ class SparqlAdapter {
       ${this.config.query.prefix?this.config.query.prefix:''}
       CONSTRUCT  {
         ?s1 ?p1 ?o1 .
+        ${dereferenceQuery?dereferenceQuery.construct:''}
       }
       WHERE {
         {
           BIND(<${id}> AS ?s1) .
-                    ?s1 ?p1 ?o1 .
+          ?s1 ?p1 ?o1 .
+          ${dereferenceQuery?dereferenceQuery.where:''}
         }
         UNION
         {
           GRAPH ?g {
             BIND(<${id}> AS ?s1) .
             ?s1 ?p1 ?o1 .
+            ${dereferenceQuery?dereferenceQuery.where:''}
           }
         }
       }
       `
+console.log('query',query);
       // console.log(query);
       const response = await fetch(this.config.query.endpoint, {
         method: 'POST',
@@ -53,15 +63,16 @@ class SparqlAdapter {
       });
 
       const raw = await response.text();
-      // console.log('raw',raw);
+
       let parsed= JSON.parse(raw);
-      // console.log('parsed',parsed);
+      // console.log('parsed',JSON.stringify(parsed));
+      console.log('parsed',parsed);
       return parsed;
 
       // const result = await response.json();
       // await this.persist(result);
       // console.log('SpasrqlAdapter resolveById',result);
-      return result;
+      // return result;
     } else {
       return undefined
     }
@@ -140,7 +151,9 @@ class SparqlAdapter {
     // console.log('persist resource',resource['@id']?resource['@id']:Array.isArray(resource)?'Array':'?');
     // console.trace("log ressource",resource)
     if (this.config.skipPersist != true) {
+
       if (Array.isArray(resource)) {
+        // console.log('persist resource Array');
         // console.log('ARRAY',resource);
         let result=[];
         for (var r of resource) {
@@ -153,6 +166,7 @@ class SparqlAdapter {
         }
         return result
       } else if (resource['@graph']) {
+        // console.log('persist resource @graph');
         // console.log('GRAPH',resource);
         let result=[]
         for (var r of resource['@graph']) {
@@ -175,6 +189,7 @@ class SparqlAdapter {
 
       } else if (resource['@id'] && !resource['@id'].includes('_:')) {
         // console.log('persist update raw',resource);
+        // console.log('persist resource ',JSON.stringify(resource));
         let oldData = await this.resolveById(resource['@id'],true);
         // console.log('oldData',oldData);
 

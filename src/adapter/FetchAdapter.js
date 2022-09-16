@@ -1,6 +1,6 @@
 'use strict';
 import jsonld from 'jsonld';
-var isUri = require('isuri');
+import isUri from 'isuri';
 
 class FetchAdapter {
   constructor(config) {
@@ -13,7 +13,7 @@ class FetchAdapter {
       if(isUri.isValid(id)){
         const response = await fetch(id,{headers:this.config?this.config.headers:{}});
         // console.log(response.headers.get('content-type'));
-        console.log(' '.repeat(depth),'FETCH resolveById', id);
+        // console.log(' '.repeat(depth),'FETCH resolveById', id);
         let raw='';
         if (response.status==200 && response.headers.get('content-type').includes('json')){
           raw = await response.text();
