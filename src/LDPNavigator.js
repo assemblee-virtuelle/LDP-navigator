@@ -366,6 +366,7 @@ class LDPNavigator {
     // console.log('mainData',mainData,unPrefixedProperty);
     // console.log('expand',JSON.stringify(this.expand));
     let rawProperty
+    // console.log();
     if(mainData['@id'] || mainData['id']){
       const mainDataInNavigator = await this.expand.find(e => e['@id'] == (mainData['@id'] || mainData['id']));
       rawProperty = mainDataInNavigator[unPrefixedProperty];
@@ -375,8 +376,11 @@ class LDPNavigator {
         ...mainData
       })
       // console.log('expandData',expandData);
-      rawProperty=expandData.find(d=>!(d['@id']||d['id']))[unPrefixedProperty];
-      console.log('rawProperty',unPrefixedProperty,rawProperty);
+      const mainDataExpanded= expandData.find(d=>!(d['@id']||d['id']));
+      if(mainDataExpanded){
+        rawProperty=mainDataExpanded[unPrefixedProperty];
+      }
+      // console.log('rawProperty',unPrefixedProperty,rawProperty);
     }
     // const mainDataInNavigator = await this.expand.find(e => e['@id'] == (mainData['@id'] || mainData['id']));
     // console.log('mainDataInNavigator',mainDataInNavigator);
@@ -458,7 +462,6 @@ class LDPNavigator {
         // console.log('get',mainData,property);
         const reference = await this.get(mainData, property, true, depth);
         // console.log('reference',reference);
-
         if (propertySchema.n && reference != undefined) {
           // console.log('dereference NEXT',reference);
           const dereference = await this.dereference(reference, propertySchema.n, depth + 1);
@@ -468,7 +471,9 @@ class LDPNavigator {
           // console.log('dereference LAST',reference);
           resultData[property] = reference;
         }
+
       }
+      // console.log('resultData ',resultData);
       return resultData;
     } else {
       return mainData;
