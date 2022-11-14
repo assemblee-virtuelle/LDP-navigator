@@ -59,7 +59,12 @@ class LDPNavigator {
 
 
 
-  async addToMemory(resource) {
+  async addToMemory(resourceIn) {
+
+    // remove @id alias because not supported by some function
+    const {id,...resourceContext}= resourceIn['@context'];
+    const resource = await jsonld.compact(resourceIn,resourceContext);
+    // console.log('resource',resource);
 
     this.context = {
       ...this.context,
@@ -73,6 +78,7 @@ class LDPNavigator {
       }
     } else {
       const flattenButNotBlanck = await this.flattenButNotBlanck(resource, this.context)
+      // console.log('flattenButNotBlanck',flattenButNotBlanck);
       if (flattenButNotBlanck['@graph'].length > 1) {
         for (let r of flattenButNotBlanck['@graph']) {
           await this.addToMemory({
@@ -112,11 +118,14 @@ class LDPNavigator {
           this.flatten = flattenButNotBlanck;
         }
 
+        // console.log('this.flatten',this.flatten);
+
         this.graph = this.flatten['@graph'];
 
         this.compact = await jsonld.compact(this.flatten, this.context);
 
         this.expand = await jsonld.expand(this.flatten);
+        // console.log('this.expand',this.expand);
         // console.log('addToMemory end', this.flatten['@graph'].length);
         // console.log('addToMemory end', JSON.stringify(this.flatten['@graph']));
 
@@ -184,6 +193,7 @@ class LDPNavigator {
   // }
   async flattenButNotBlanck(resource, context) {
     const flat = await jsonld.flatten(resource, context);
+    // console.log('flat',flat);
     let out = [];
     let idsBlank = [];
     const blanks = flat['@graph'].map(s=>{
@@ -196,7 +206,7 @@ class LDPNavigator {
 
     if (flat['@graph'] && flat['@graph'].length > 0) {
       for (let subject of flat['@graph']) {
-
+        // console.log('subject',subject);
         if (subject['@id'] && !subject['@id'].includes('_:')) {
           const graph= [...blanks,subject];
           const framed = await jsonld.frame({
@@ -208,7 +218,12 @@ class LDPNavigator {
               "@id":subject['@id']
             }
           );
-          out.push(framed);
+          const {
+            '@context': context,
+            ...noContext
+          }  = framed
+          // console.log("noContext",noContext);
+          out.push(noContext);
         }
       }
     }
@@ -234,6 +249,8 @@ class LDPNavigator {
 
       // console.log("this.expand", this.expand);
       if (this.expand) {
+
+        // console.log("resolveById",id,this.expand);
 
         let resultInMemory = this.expand.find(f => f["@id"] == id);
         // console.log('resultInMemory', id, resultInMemory, );
