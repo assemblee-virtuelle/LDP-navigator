@@ -1,6 +1,6 @@
 {
   "name": "ldp-navigator",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "explore ldp data in memory and adapters as sparql, http fetch, local storage",
   "main": "src/index.js",
   "type": "module",
