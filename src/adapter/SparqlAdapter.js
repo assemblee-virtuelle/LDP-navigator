@@ -15,6 +15,7 @@ import {JsonLdParser} from "jsonld-streaming-parser";
 // console.log(jsonldStreamingParser);
 // const JsonLdParser = jsonldStreamingParser.JsonLdParser;
 import streamifyString from 'streamify-string';
+import dataFactory from '@rdfjs/data-model';
 
 class SparqlAdapter {
   constructor(config) {
@@ -61,11 +62,22 @@ class SparqlAdapter {
         headers: this.config.query.headers
       });
 
-      const raw = await response.text();
 
+
+      const raw = await response.text();
+      // console.log('SPARQL resolveById',id,raw)
       let parsed= JSON.parse(raw);
 
-      return parsed;
+      let framed = await jsonld.frame(parsed, {
+        '@id':id
+      });
+      framed ={
+        '@context':parsed['@context'],
+        ...framed,
+      }
+
+      // console.log('SPARQL resolveById',id,JSON.stringify(parsed))
+      return framed;
 
       // const result = await response.json();
       // await this.persist(result);
@@ -145,6 +157,72 @@ class SparqlAdapter {
     return result
   }
 
+  convertBlankNodesToVars(triples, blankNodesVarsMap) {
+    return triples.map(triple => {
+      if (triple.subject.termType === 'BlankNode') {
+        triple.subject = dataFactory.variable(triple.subject.value);
+      }
+      if (triple.object.termType === 'BlankNode') {
+        triple.object = dataFactory.variable(triple.object.value);
+      }
+      return triple;
+    });
+  }
+
+  buildJsonVariable(identifier, triples) {
+    const blankVariables = triples.filter(t => t.subject.value.localeCompare(identifier) === 0);
+    let json = {};
+    let allIdentifiers = [identifier];
+    for (var blankVariable of blankVariables) {
+      if (blankVariable.object.termType === 'Variable') {
+        const jsonVariable = this.buildJsonVariable(blankVariable.object.value, triples);
+        json[blankVariable.predicate.value] = jsonVariable.json;
+        allIdentifiers = allIdentifiers.concat(jsonVariable.allIdentifiers);
+      } else {
+        json[blankVariable.predicate.value] = blankVariable.object.value;
+      }
+    }
+    return { json, allIdentifiers };
+  }
+
+  removeDuplicatedVariables(triples) {
+    const roots = triples.filter(n => n.object.termType === 'Variable' && n.subject.termType !== 'Variable');
+    const rootsIdentifiers = roots.reduce((previousValue, currentValue) => {
+      let result = previousValue;
+      if (!result.find(i => i.localeCompare(currentValue.object.value) === 0)) {
+        result.push(currentValue.object.value);
+      }
+      return result;
+    }, []);
+    let rootsJson = [];
+    for (var rootIdentifier of rootsIdentifiers) {
+      const jsonVariable = this.buildJsonVariable(rootIdentifier, triples);
+      rootsJson.push({
+        rootIdentifier,
+        stringified: JSON.stringify(jsonVariable.json),
+        allIdentifiers: jsonVariable.allIdentifiers
+      });
+    }
+    let keepVariables = [];
+    let duplicatedVariables = [];
+    for (var rootJson of rootsJson) {
+      if (keepVariables.find(kp => kp.stringified.localeCompare(rootJson.stringified) === 0)) {
+        duplicatedVariables.push(rootJson);
+      } else {
+        keepVariables.push(rootJson);
+      }
+    }
+    let allRemovedIdentifiers = duplicatedVariables.map(dv => dv.allIdentifiers).flat();
+    let removedDuplicatedVariables = triples.filter(
+      t => !allRemovedIdentifiers.includes(t.object.value) && !allRemovedIdentifiers.includes(t.subject.value)
+    );
+    return removedDuplicatedVariables;
+  }
+
+  bindNewBlankNodes(triples) {
+    return triples.map(triple => `BIND (BNODE() AS ?${triple.object.value}) .`).join('\n');
+  }
+
   async persist(resource) {
     // console.log('persist resource',resource['@id']?resource['@id']:Array.isArray(resource)?'Array':'?');
     // console.trace("log ressource",resource)
@@ -189,27 +267,41 @@ class SparqlAdapter {
         // console.log('persist update raw',resource);
         // console.log('persist resource ',JSON.stringify(resource));
         let oldData = await this.resolveById(resource['@id'],true);
-        // console.log('oldData',oldData);
+        console.log('oldData',oldData);
 
         if (oldData && oldData['@id']) {
           // console.log('SPARQL UPDATE',resource['@id']);
           let oldTriples = await this.jsonToQuads(oldData);
           let newTriples = await this.jsonToQuads(resource);
 
+
+          oldTriples = this.convertBlankNodesToVars(oldTriples);
+          newTriples = this.convertBlankNodesToVars(newTriples);
+
+          newTriples = this.removeDuplicatedVariables(newTriples);
+
           // const triplesToAdd = this.getTriplesDifference(newTriples, oldTriples).reverse();
           const triplesToAdd = newTriples;
           const triplesToRemove = this.getTripleswhitSamePredicate(oldTriples, newTriples);
+
+
+          const newBlankNodes = this.getTriplesDifference(newTriples, oldTriples).filter(
+            triple => triple.object.termType === 'Variable'
+          );
+          const existingBlankNodes = oldTriples.filter(
+            triple => triple.object.termType === 'Variable' || triple.subject.termType === 'Variable'
+          );
 
           let query = '';
           if (triplesToRemove.length > 0) query += `DELETE { ${this.triplesToString(triplesToRemove)} } `;
           if (triplesToAdd.length > 0) query += `INSERT { ${this.triplesToString(triplesToAdd)} } `;
           query += `WHERE { `;
-          // if (existingBlankNodes.length > 0) query += this.triplesToString(existingBlankNodes);
-          // if (newBlankNodes.length > 0) query += this.bindNewBlankNodes(newBlankNodes);
+          if (existingBlankNodes.length > 0) query += this.triplesToString(existingBlankNodes);
+          if (newBlankNodes.length > 0) query += this.bindNewBlankNodes(newBlankNodes);
           query += ` }`;
 
 
-          // console.log('query',query);
+          console.log('query',query);
 
           const response = await fetch(this.config.update.endpoint, {
             body: query,
@@ -218,7 +310,7 @@ class SparqlAdapter {
           });
           resource = this.resolveById(resource['@id'],true)
         } else {
-          // console.log('SPARQL CREATE', resource['@id']);
+          // console.log('SPARQL CREATE', resource['@id'],resource);
           const rdf = await jsonld.toRDF(resource, {
             format: 'application/n-quads'
           });

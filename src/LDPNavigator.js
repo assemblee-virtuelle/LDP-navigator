@@ -474,7 +474,7 @@ class LDPNavigator {
       }
 
       for (var propertySchema of propertiesSchemaArray) {
-        console.log(' '.repeat(depth),'dereference', propertySchema.p, 'of',(mainData['@id']?mainData['@id']:mainData));
+        // console.log(' '.repeat(depth),'dereference', propertySchema.p, 'of',(mainData['@id']?mainData['@id']:mainData));
         const property = propertySchema.p;
         // console.log('get',mainData,property);
         const reference = await this.get(mainData, property, true, depth);
