@@ -64,7 +64,7 @@ class LDPNavigator {
     // remove @id alias because not supported by some function
     const {id,...resourceContext}= resourceIn['@context'];
     const resource = await jsonld.compact(resourceIn,resourceContext);
-    // console.log('resource',resource);
+    // console.log('resource',resource['@id'],resource['dfc-b:description']);
 
     this.context = {
       ...this.context,
@@ -88,46 +88,25 @@ class LDPNavigator {
         }
       } else {
 
-        // console.log('addToMemory', JSON.stringify(flattenButNotBlanck['@graph'][0]));
-
-        // console.log('flattenButNotBlanck',JSON.stringify(flattenButNotBlanck));
-
-        // const {
-        //   '@context': context,
-        //   ...noContext
-        // } = flattenButNotBlanck;
-        // const directFlatten =
-
 
         if (this.flatten) {
           if (flattenButNotBlanck['@graph'].length > 0) {
-            const singleResource = flattenButNotBlanck['@graph'][0]
-            // console.log('FLATTEN EXIST');
-            let existing = this.flatten['@graph'].find(s => s['@id'] == singleResource['@id'])
-            // console.log('existing', existing);
+            const singleResource = flattenButNotBlanck['@graph'][0];
+            let existing = this.flatten['@graph'].find(s => s['@id'] == singleResource['@id']);
+            let otherResources = this.flatten['@graph'].filter(s => s['@id'] != singleResource['@id']);
             if (existing) {
-              existing = singleResource;
+              this.flatten['@graph']=[...otherResources,singleResource]
             } else {
-              // console.log('noContext', singleResource);
               this.flatten['@graph'].push(singleResource);
             }
           }
           this.flatten['@context'] = flattenButNotBlanck['@context'];
         } else {
-          // console.log('FLATTEN NOT EXIST');
           this.flatten = flattenButNotBlanck;
         }
-
-        // console.log('this.flatten',this.flatten);
-
         this.graph = this.flatten['@graph'];
-
         this.compact = await jsonld.compact(this.flatten, this.context);
-
         this.expand = await jsonld.expand(this.flatten);
-        // console.log('this.expand',this.expand);
-        // console.log('addToMemory end', this.flatten['@graph'].length);
-        // console.log('addToMemory end', JSON.stringify(this.flatten['@graph']));
 
       }
     }

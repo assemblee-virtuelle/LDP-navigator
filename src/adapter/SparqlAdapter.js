@@ -267,12 +267,13 @@ class SparqlAdapter {
         // console.log('persist update raw',resource);
         // console.log('persist resource ',JSON.stringify(resource));
         let oldData = await this.resolveById(resource['@id'],true);
-        console.log('oldData',oldData);
+        // console.log('oldData',oldData);
 
         if (oldData && oldData['@id']) {
           // console.log('SPARQL UPDATE',resource['@id']);
           let oldTriples = await this.jsonToQuads(oldData);
           let newTriples = await this.jsonToQuads(resource);
+          // console.log('newTriples',newTriples)
 
 
           oldTriples = this.convertBlankNodesToVars(oldTriples);
@@ -301,7 +302,7 @@ class SparqlAdapter {
           query += ` }`;
 
 
-          console.log('query',query);
+          // console.log('query',query);
 
           const response = await fetch(this.config.update.endpoint, {
             body: query,

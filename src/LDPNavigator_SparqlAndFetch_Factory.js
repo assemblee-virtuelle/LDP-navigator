@@ -5,19 +5,20 @@ import SparqlAdapter from './adapter/SparqlAdapter';
 
 class LDPNavigator_SparqlAndFetch_Factory {
   constructor(config) {
-    this.ldpNavigator=new LDPNavigator(config);
     this.config=config;
 
   }
 
   make(adapterClasses){
+
     const config =this.config;
+    const ldpNavigator=new LDPNavigator(config);
     let adapters=[
       new SparqlAdapter(config?config.sparql:undefined),
       new FetchAdapter(config?config.fetch:undefined)
     ];
-    this.ldpNavigator.setAdapters(adapters)
-    return this.ldpNavigator;
+    ldpNavigator.setAdapters(adapters)
+    return ldpNavigator;
   }
 }
 
