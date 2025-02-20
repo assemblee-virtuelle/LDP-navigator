@@ -23,6 +23,7 @@ class SparqlAdapter {
   }
 
   async resolveById(id,forceResolveById,depth) {
+    console.log('__resolveById',id)
     let dereferenceQuery = this.config.dereference
     if (this.config.dereference){
       dereferenceQuery =ldpSemapps.buildDereferenceQuery(this.config.dereference);

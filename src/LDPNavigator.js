@@ -62,8 +62,8 @@ class LDPNavigator {
   async addToMemory(resourceIn) {
 
     // remove @id alias because not supported by some function
-    const {id,...resourceContext}= resourceIn['@context'];
-    const resource = await jsonld.compact(resourceIn,resourceContext);
+    const { id, ...resourceContext } = resourceIn['@context'];
+    const resource = await jsonld.compact(resourceIn, resourceContext);
     // console.log('resource',resource['@id'],resource['dfc-b:description']);
 
     this.context = {
@@ -95,7 +95,7 @@ class LDPNavigator {
             let existing = this.flatten['@graph'].find(s => s['@id'] == singleResource['@id']);
             let otherResources = this.flatten['@graph'].filter(s => s['@id'] != singleResource['@id']);
             if (existing) {
-              this.flatten['@graph']=[...otherResources,singleResource]
+              this.flatten['@graph'] = [...otherResources, singleResource]
             } else {
               this.flatten['@graph'].push(singleResource);
             }
@@ -175,8 +175,8 @@ class LDPNavigator {
     // console.log('flat',flat);
     let out = [];
     let idsBlank = [];
-    const blanks = flat['@graph'].map(s=>{
-      if (s['@id'] && s['@id'].includes('_:')){
+    const blanks = flat['@graph'].map(s => {
+      if (s['@id'] && s['@id'].includes('_:')) {
         // console.log('s',s['@id']);
         // idsBlank.push(s['@id']);
         return s
@@ -187,20 +187,20 @@ class LDPNavigator {
       for (let subject of flat['@graph']) {
         // console.log('subject',subject);
         if (subject['@id'] && !subject['@id'].includes('_:')) {
-          const graph= [...blanks,subject];
+          const graph = [...blanks, subject];
           const framed = await jsonld.frame({
-            '@context':flat['@context'],
-            '@graph':graph
-            },
+            '@context': flat['@context'],
+            '@graph': graph
+          },
             {
-              '@context':flat['@context'],
-              "@id":subject['@id']
+              '@context': flat['@context'],
+              "@id": subject['@id']
             }
           );
           const {
             '@context': context,
             ...noContext
-          }  = framed
+          } = framed
           // console.log("noContext",noContext);
           out.push(noContext);
         }
@@ -322,7 +322,7 @@ class LDPNavigator {
   }
 
   async persist() {
-    // console.log('expand',this.expand);
+    // console.log('compact',JSON.stringify(this.compact));
     for (var adapter of this.adapters) {
       if (adapter.persist) {
         // console.log('persist',this.expand);
@@ -363,18 +363,18 @@ class LDPNavigator {
     // console.log('expand',JSON.stringify(this.expand));
     let rawProperty
     // console.log();
-    if(mainData['@id'] || mainData['id']){
+    if (mainData['@id'] || mainData['id']) {
       const mainDataInNavigator = await this.expand.find(e => e['@id'] == (mainData['@id'] || mainData['id']));
       rawProperty = mainDataInNavigator[unPrefixedProperty];
-    }else{
+    } else {
       const expandData = await jsonld.expand({
-        '@context':this.context,
+        '@context': this.context,
         ...mainData
       })
       // console.log('expandData',expandData);
-      const mainDataExpanded= expandData.find(d=>!(d['@id']||d['id']));
-      if(mainDataExpanded){
-        rawProperty=mainDataExpanded[unPrefixedProperty];
+      const mainDataExpanded = expandData.find(d => !(d['@id'] || d['id']));
+      if (mainDataExpanded) {
+        rawProperty = mainDataExpanded[unPrefixedProperty];
       }
       // console.log('rawProperty',unPrefixedProperty,rawProperty);
     }
@@ -407,7 +407,7 @@ class LDPNavigator {
           const {
             '@context': context,
             ...compactProp
-          } = await jsonld.compact(prop,this.context)
+          } = await jsonld.compact(prop, this.context)
           //blank nodes
           out.push(compactProp);
         }
@@ -428,22 +428,33 @@ class LDPNavigator {
     }
   }
 
-  async dereference(mainData, propertiesSchema, depth) {
+  async dereference(mainData, propertiesSchema, options, depth) {
     // console.log('dereference',mainData['@id']?mainData['@id']:mainData,propertiesSchema);
     depth = depth || 1;
 
-    // console.log('LDP DEREFERENCE');
     if (Array.isArray(mainData)) {
       let result = [];
+      let flatResult = [];
       for (var mainDataIteration of mainData) {
-        result.push(await this.dereference(mainDataIteration, propertiesSchema, depth))
+        if (options?.flat == true){
+          flatResult=flatResult.concat(await this.dereference(mainDataIteration, propertiesSchema, options, depth))
+        } else {
+          result.push(await this.dereference(mainDataIteration, propertiesSchema, options, depth))
+        }
       }
-      return result;
+      if (options?.flat == true) {
+        return flatResult;
+      } else {
+        return result;
+      }
     } else if (isObject(mainData)) {
-      // console.log('dereference CALL',mainData,propertiesSchema);
-      let resultData = {
+      let result = {
         ...mainData
       };
+      let flatResult = [
+        {...mainData}
+      ];
+
 
       let propertiesSchemaArray = [];
       if (!Array.isArray(propertiesSchema)) {
@@ -455,22 +466,32 @@ class LDPNavigator {
       for (var propertySchema of propertiesSchemaArray) {
         // console.log(' '.repeat(depth),'dereference', propertySchema.p, 'of',(mainData['@id']?mainData['@id']:mainData));
         const property = propertySchema.p;
-        // console.log('get',mainData,property);
         const reference = await this.get(mainData, property, true, depth);
-        // console.log('reference',reference);
         if (propertySchema.n && reference != undefined) {
-          // console.log('dereference NEXT',reference);
-          const dereference = await this.dereference(reference, propertySchema.n, depth + 1);
-          // console.log('dereference NEXT END');
-          resultData[property] = dereference;
+          const dereference = await this.dereference(reference, propertySchema.n, options, depth + 1);
+          if (options?.flat == true ){
+            if(dereference!=undefined){
+              flatResult = flatResult.concat(dereference);
+            }
+          } else {
+            result[property] = dereference;
+          }
         } else {
-          // console.log('dereference LAST',reference);
-          resultData[property] = reference;
+          if (options?.flat == true){
+            if(reference!=undefined){
+              flatResult.push(reference);
+            }
+          } else {
+            result[property] = reference;
+          }
         }
-
       }
-      // console.log('resultData ',resultData);
-      return resultData;
+
+      if (options?.flat == true) {
+        return flatResult;
+      } else {
+        return result;
+      }
     } else {
       return mainData;
     }
